@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function BannerSlide({ banner }) {
   return (
-    <div className="relative w-full h-[220px] md:h-[320px] lg:h-[420px] flex-shrink-0 flex items-center justify-center overflow-hidden group">
+    <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[70vh] flex-shrink-0 flex items-center justify-center overflow-hidden group">
       {/* Background Image */}
       {banner.imageUrl ? (
         <img 

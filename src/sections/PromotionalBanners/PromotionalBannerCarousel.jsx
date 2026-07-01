@@ -52,10 +52,8 @@ export default function PromotionalBannerCarousel() {
   if (loading || banners.length === 0) return null;
 
   return (
-    <section className="w-full bg-[#F8F5F0] py-8 md:py-16">
-      <div className="w-full max-w-[1920px] mx-auto px-4 lg:px-6 relative group">
-        
-        <div className="overflow-hidden" ref={emblaRef}>
+    <section className="w-full relative group bg-bgPrimary">
+      <div className="w-full overflow-hidden" ref={emblaRef}>
           <div className="flex touch-pan-y" style={{ backfaceVisibility: 'hidden' }}>
             {banners.map((banner, index) => (
               <div className="flex-[0_0_100%] min-w-0 pl-0 relative" key={banner.id}>
@@ -99,7 +97,6 @@ export default function PromotionalBannerCarousel() {
           </>
         )}
 
-      </div>
     </section>
   );
 }

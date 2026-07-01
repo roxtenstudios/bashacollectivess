@@ -1,45 +1,66 @@
-import { useRef, useEffect } from 'react';
-import gsap from 'gsap';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const words = [
+  "QUALITY",
+  "CRAFT",
+  "DETAIL",
+  "SIMPLICITY",
+  "TIMELESSNESS",
+  "ELEGANCE"
+];
 
 export default function Section7Marquee() {
-  const marqueeRef = useRef(null);
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const content = marqueeRef.current.firstElementChild;
-      const moveDistance = content.offsetWidth;
-
-      gsap.to(marqueeRef.current, {
-        x: -moveDistance,
-        duration: 30,
-        ease: 'none',
-        repeat: -1,
-      });
-    }, marqueeRef);
-
-    return () => ctx.revert();
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % words.length);
+    }, 2800);
+    return () => clearInterval(interval);
   }, []);
 
-  const textGroup = (
-    <div className="flex gap-16 md:gap-32 px-8 md:px-16 items-center whitespace-nowrap">
-      <span>BASHA COLLECTIVES</span>
-      <span className="text-accent text-3xl md:text-5xl">&bull;</span>
-      <span>QUALITY</span>
-      <span className="text-accent text-3xl md:text-5xl">&bull;</span>
-      <span>MINIMALISM</span>
-      <span className="text-accent text-3xl md:text-5xl">&bull;</span>
-      <span>TIMELESS</span>
-      <span className="text-accent text-3xl md:text-5xl">&bull;</span>
-    </div>
-  );
-
   return (
-    <section className="w-full bg-bgPrimary py-24 md:py-32 overflow-hidden flex items-center">
-      <div ref={marqueeRef} className="flex font-serif text-3xl md:text-5xl lg:text-6xl tracking-wider text-textPrimary">
-        {textGroup}
-        {textGroup}
-        {textGroup}
+    <section className="relative w-full bg-[#FAF9F6] py-32 md:py-48 flex flex-col justify-center items-center overflow-hidden border-y border-border/30 px-4">
+      
+      {/* Background Watermark (Outline Typography) */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+        <span 
+          className="text-[180px] md:text-[300px] lg:text-[450px] tracking-tighter leading-none text-transparent select-none whitespace-nowrap"
+          style={{ fontFamily: "'Anton', sans-serif", WebkitTextStroke: '2px rgba(0,0,0,0.05)' }}
+        >
+          BASHA
+        </span>
       </div>
+
+      <div className="relative z-10 flex flex-col items-center text-center max-w-5xl mx-auto w-full">
+        {/* Top static text */}
+        <span className="font-serif text-2xl md:text-3xl lg:text-4xl text-[#C5A059] mb-8 md:mb-10 tracking-[0.2em] uppercase">
+          BASHA'S
+        </span>
+        
+        {/* Rotating word container */}
+        <div className="relative h-[80px] md:h-[130px] lg:h-[150px] w-full flex justify-center items-center mb-8 md:mb-10 overflow-hidden">
+          <AnimatePresence>
+            <motion.span
+              key={words[index]}
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -30, opacity: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute font-serif text-[50px] md:text-[90px] lg:text-[120px] font-medium tracking-tight text-textPrimary leading-none"
+            >
+              {words[index]}
+            </motion.span>
+          </AnimatePresence>
+        </div>
+
+        {/* Bottom static text */}
+        <span className="font-sans text-xs md:text-sm font-light tracking-[0.2em] text-textSecondary uppercase">
+          is never accidental.
+        </span>
+      </div>
+
     </section>
   );
 }
