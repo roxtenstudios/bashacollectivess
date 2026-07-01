@@ -21,6 +21,7 @@ const Catalogue = () => {
     category: 'Apparel',
     price: '',
     stock: '',
+    desc: '',
     image: '',
     images: [],
     isBestSeller: false,
@@ -53,7 +54,7 @@ const Catalogue = () => {
   const openAddModal = () => {
     setEditingId(null);
     setImageFiles([]);
-    setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', image: '', images: [], isBestSeller: false, isExclusive: false });
+    setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', desc: '', image: '', images: [], isBestSeller: false, isExclusive: false });
     setIsModalOpen(true);
   };
 
@@ -65,6 +66,7 @@ const Catalogue = () => {
       category: product.category || categories[0] || 'Apparel',
       price: product.price,
       stock: product.stock,
+      desc: product.desc || '',
       image: product.image || '',
       images: product.images || (product.image ? [product.image] : []),
       isBestSeller: product.isBestSeller || false,
@@ -99,6 +101,7 @@ const Catalogue = () => {
         category: newProduct.category || categories[0] || 'Uncategorized',
         price: parseFloat(newProduct.price),
         stock: parseInt(newProduct.stock),
+        desc: newProduct.desc || '',
         image: finalImages[0] || '', // primary image for backward compatibility
         images: finalImages,
         isBestSeller: newProduct.isBestSeller,
@@ -113,7 +116,7 @@ const Catalogue = () => {
       }
 
       setIsModalOpen(false);
-      setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', image: '', images: [], isBestSeller: false, isExclusive: false });
+      setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', desc: '', image: '', images: [], isBestSeller: false, isExclusive: false });
       setEditingId(null);
       setImageFiles([]);
     } catch (error) {
@@ -261,6 +264,15 @@ const Catalogue = () => {
                   type="text" required
                   value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})}
                   className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Description (Optional)</label>
+                <textarea 
+                  rows="3"
+                  value={newProduct.desc} onChange={e => setNewProduct({...newProduct, desc: e.target.value})}
+                  placeholder="Enter product details..."
+                  className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900 resize-none"
                 />
               </div>
               <div>

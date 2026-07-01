@@ -198,14 +198,13 @@ export default function Product() {
             </button>
           </div>
           
-          <div className="pt-8 border-t border-border/30 flex flex-col gap-4">
-            <div className="flex justify-between items-center font-sans text-xs tracking-widest uppercase text-textSecondary">
-              <span className="flex items-center gap-2"><RefreshCcw size={14} /> Exchange</span>
-              <span>Available within 7 days of delivery</span>
-            </div>
-            <div className="flex justify-between font-sans text-xs tracking-widest uppercase text-textSecondary">
-              <span>Policy</span>
-              <span>Exchange Only. No Returns.</span>
+          <div className="pt-8 mt-4 border-t border-gray-200 flex flex-col gap-5">
+            <div className="flex gap-4 font-sans text-sm text-gray-500">
+              <RefreshCcw size={18} className="shrink-0 mt-0.5" />
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-900 font-medium tracking-wide uppercase text-xs">Exchange Policy</span>
+                <span className="leading-relaxed">Available within 7 days of delivery. Exchange only. No returns accepted.</span>
+              </div>
             </div>
           </div>
 

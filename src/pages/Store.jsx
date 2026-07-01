@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, ChevronDown, Filter } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 import { IMAGES } from '../data/images';
 import { db } from '../services/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
@@ -24,6 +25,7 @@ export const ALL_PRODUCTS = Array.from({ length: 20 }).map((_, i) => {
 
 export default function Store() {
   const location = useLocation();
+  const { addToCart } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState(location.state?.category || 'All');
   const [products, setProducts] = useState([]);
@@ -157,6 +159,22 @@ export default function Store() {
                 ) : product.stock !== undefined && Number(product.stock) <= 5 ? (
                   <span className="font-sans text-[10px] tracking-widest uppercase text-orange-500 mt-1">Only {product.stock} left!</span>
                 ) : null}
+                
+                <button
+                  disabled={product.stock !== undefined && Number(product.stock) === 0}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addToCart(product, 1, 'M', null);
+                  }}
+                  className={`mt-3 w-full py-2 border font-sans text-[10px] tracking-widest uppercase transition-colors ${
+                    product.stock !== undefined && Number(product.stock) === 0 
+                      ? 'border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed' 
+                      : 'border-black text-black hover:bg-black hover:text-white'
+                  }`}
+                >
+                  {product.stock !== undefined && Number(product.stock) === 0 ? 'Sold Out' : 'Add to Cart'}
+                </button>
               </div>
             </Link>
           ))}

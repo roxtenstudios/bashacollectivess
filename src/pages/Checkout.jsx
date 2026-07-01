@@ -266,7 +266,7 @@ export default function Checkout() {
       exit={{ opacity: 0 }}
       className="w-full min-h-screen bg-bgPrimary pt-24 md:pt-32 pb-24"
     >
-      <div className="max-w-6xl mx-auto px-6 flex flex-col lg:flex-row gap-16 lg:gap-24 relative">
+      <div className="max-w-6xl mx-auto px-6 flex flex-col-reverse lg:flex-row gap-16 lg:gap-24 relative">
         
         {/* LEFT COLUMN: Checkout Form */}
         <div className="w-full lg:w-3/5 flex flex-col gap-12 bg-white/60 p-8 md:p-12 rounded-[2rem] shadow-soft backdrop-blur-xl border border-white/50">
