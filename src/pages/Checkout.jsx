@@ -272,14 +272,17 @@ export default function Checkout() {
         <div className="w-full lg:w-3/5 flex flex-col gap-12 bg-white/60 p-8 md:p-12 rounded-[2rem] shadow-soft backdrop-blur-xl border border-white/50">
           
           {/* Breadcrumbs */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3 font-sans text-[10px] md:text-xs tracking-widest uppercase text-textSecondary bg-white/40 w-fit max-w-full px-5 md:px-6 py-3 rounded-2xl md:rounded-full border border-white/50 shadow-sm">
-            <button onClick={() => setStep(1)} className="hover:text-textPrimary transition-colors font-medium">Store</button>
-            <ChevronRight size={14} className="opacity-50" />
-            <button onClick={() => setStep(1)} className={`${step >= 1 ? "text-textPrimary font-semibold" : ""} hover:opacity-70 transition-opacity`}>Information</button>
-            <ChevronRight size={14} className="opacity-50" />
-            <button onClick={() => step > 1 && setStep(2)} className={`${step >= 2 ? "text-textPrimary font-semibold" : ""} hover:opacity-70 transition-opacity`}>Shipping</button>
-            <ChevronRight size={14} className="opacity-50" />
-            <span className={step >= 3 ? "text-textPrimary font-semibold" : ""}>Payment</span>
+          <div 
+            className="flex flex-nowrap items-center gap-1.5 sm:gap-2 md:gap-3 font-sans text-[9px] sm:text-[10px] md:text-xs tracking-widest uppercase text-textSecondary bg-white/40 w-full md:w-fit overflow-x-auto px-4 md:px-6 py-3 rounded-2xl md:rounded-full border border-white/50 shadow-sm"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <button onClick={() => setStep(1)} className="hover:text-textPrimary transition-colors font-medium shrink-0">Store</button>
+            <ChevronRight size={12} className="opacity-50 shrink-0" />
+            <button onClick={() => setStep(1)} className={`${step >= 1 ? "text-textPrimary font-semibold" : ""} hover:opacity-70 transition-opacity shrink-0`}>Information</button>
+            <ChevronRight size={12} className="opacity-50 shrink-0" />
+            <button onClick={() => step > 1 && setStep(2)} className={`${step >= 2 ? "text-textPrimary font-semibold" : ""} hover:opacity-70 transition-opacity shrink-0`}>Shipping</button>
+            <ChevronRight size={12} className="opacity-50 shrink-0" />
+            <span className={`shrink-0 ${step >= 3 ? "text-textPrimary font-semibold" : ""}`}>Payment</span>
           </div>
 
           <AnimatePresence mode="wait">
