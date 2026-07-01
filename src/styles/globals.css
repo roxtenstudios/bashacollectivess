@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bgPrimary: var(--bg-primary);
+  --color-bgSecondary: var(--bg-secondary);
+  --color-bgCard: var(--bg-card);
+  --color-textPrimary: var(--text-primary);
+  --color-textSecondary: var(--text-secondary);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Cormorant Garamond', serif;
+  
+  --ease-lux: cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-duration-700: 700ms;
+  --animate-duration-1200: 1200ms;
+
+  /* New Soft Luxury UI additions */
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+  
+  --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.04);
+  --shadow-soft-hover: 0 20px 50px rgba(0, 0, 0, 0.08);
+}
+
+@layer base {
+  :root {
+    --bg-primary: #F7F4EE;
+    --bg-secondary: #F0EADF;
+    --bg-card: #FBFAF6; /* Off-white card background */
+    --text-primary: #1E1E1E;
+    --text-secondary: #707070;
+    --accent: #B8A890;
+    --border: rgba(0, 0, 0, 0.04);
+  }
+
+  body {
+    @apply bg-bgPrimary text-textPrimary antialiased;
+    font-family: 'Inter', sans-serif;
+    overscroll-behavior: none;
+  }
+  
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+  }
+
+  /* Lenis Standard Styling */
+  html.lenis, html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .duration-1200 {
+    transition-duration: 1200ms;
+  }
+  .duration-700 {
+    transition-duration: 700ms;
+  }
+}

@@ -1,0 +1,241 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Edit2, Trash2, X } from 'lucide-react';
+import { db } from '../../services/firebase';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { ALL_PRODUCTS } from '../Store';
+
+const Catalogue = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [productsData, setProductsData] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Form states
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    category: 'Apparel',
+    price: '',
+    stock: '',
+    image: ''
+  });
+
+  useEffect(() => {
+    const q = query(collection(db, 'products'), orderBy('timestamp', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const products = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setProductsData(products);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    if (!newProduct.name || !newProduct.price || !newProduct.stock) return;
+
+    try {
+      await addDoc(collection(db, 'products'), {
+        name: newProduct.name,
+        category: newProduct.category,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock),
+        image: newProduct.image,
+        timestamp: serverTimestamp()
+      });
+
+      setIsModalOpen(false);
+      setNewProduct({ name: '', category: 'Apparel', price: '', stock: '', image: '' });
+    } catch (error) {
+      console.error("Error adding product: ", error);
+      alert("Failed to add product.");
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await deleteDoc(doc(db, 'products', productId));
+      } catch (error) {
+        console.error("Error deleting product: ", error);
+      }
+    }
+  };
+
+  const handleSeedDatabase = async () => {
+    if (!window.confirm("This will inject 20 dummy products into your database. Continue?")) return;
+    setIsSeeding(true);
+    try {
+      for (const prod of ALL_PRODUCTS) {
+        await addDoc(collection(db, 'products'), {
+          name: prod.title,
+          category: prod.category,
+          price: parseFloat(prod.price),
+          stock: prod.stock || 20,
+          image: prod.image,
+          desc: prod.desc,
+          timestamp: serverTimestamp()
+        });
+      }
+      alert("Database seeded successfully!");
+    } catch (err) {
+      console.error("Failed to seed database:", err);
+      alert("Failed to seed database.");
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const filteredProducts = productsData.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-serif text-gray-900">Catalogue</h1>
+        <div className="flex gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="bg-white border border-gray-200 rounded-md py-2 pl-10 pr-4 focus:outline-none focus:border-gray-400 text-sm text-gray-900"
+            />
+          </div>
+          <button 
+            onClick={handleSeedDatabase}
+            disabled={isSeeding}
+            className="bg-green-600 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 hover:bg-green-700 transition-colors disabled:opacity-50"
+          >
+            {isSeeding ? 'Seeding...' : 'Seed Database'}
+          </button>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-gray-900 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 hover:bg-black transition-colors"
+          >
+            <Plus size={18} /> Add Product
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+        <table className="w-full text-left text-sm text-gray-600">
+          <thead className="text-xs text-gray-500 uppercase bg-[#FAF9F6] border-b border-gray-200">
+            <tr>
+              <th className="px-6 py-4">Product Name</th>
+              <th className="px-6 py-4">Category</th>
+              <th className="px-6 py-4">Price</th>
+              <th className="px-6 py-4">Stock</th>
+              <th className="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProducts.map((product) => (
+              <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+                  {product.image && <img src={product.image} alt={product.name} className="w-8 h-8 rounded-md object-cover" />}
+                  {product.name}
+                </td>
+                <td className="px-6 py-4">{product.category}</td>
+                <td className="px-6 py-4">₹{product.price.toFixed(2)}</td>
+                <td className="px-6 py-4">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.stock > 10 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {product.stock} in stock
+                  </span>
+                </td>
+                <td className="px-6 py-4 flex justify-end gap-2">
+                  <button className="p-2 hover:bg-gray-200 rounded-md transition-colors text-gray-600">
+                    <Edit2 size={18} />
+                  </button>
+                  <button onClick={() => handleDeleteProduct(product.id)} className="p-2 hover:bg-red-100 text-red-600 rounded-md transition-colors">
+                    <Trash2 size={18} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                  No products found. Add a new product to get started.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add Product Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-xl relative">
+            <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900">
+              <X size={20} />
+            </button>
+            <h2 className="text-xl font-serif text-gray-900 mb-6">Add New Product</h2>
+            
+            <form onSubmit={handleAddProduct} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Product Name</label>
+                <input 
+                  type="text" required
+                  value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+                  className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Category</label>
+                <select 
+                  value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}
+                  className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
+                >
+                  <option>Apparel</option>
+                  <option>Jewelry</option>
+                  <option>Accessories</option>
+                  <option>Home</option>
+                </select>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-1/2">
+                  <label className="block text-sm text-gray-600 mb-1">Price (₹)</label>
+                  <input 
+                    type="number" step="0.01" required min="0"
+                    value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})}
+                    className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
+                  />
+                </div>
+                <div className="w-1/2">
+                  <label className="block text-sm text-gray-600 mb-1">Stock Quantity</label>
+                  <input 
+                    type="number" required min="0"
+                    value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: e.target.value})}
+                    className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Image URL</label>
+                <input 
+                  type="url" placeholder="https://example.com/image.jpg"
+                  value={newProduct.image} onChange={e => setNewProduct({...newProduct, image: e.target.value})}
+                  className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
+                />
+              </div>
+              
+              <button 
+                type="submit"
+                className="w-full bg-gray-900 text-white py-3 rounded-md font-medium hover:bg-black transition-colors mt-4"
+              >
+                Save Product
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Catalogue;
