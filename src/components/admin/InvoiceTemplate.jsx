@@ -105,7 +105,7 @@ const InvoiceTemplate = ({ order, onComplete }) => {
 
         <div style={{ marginTop: '60px', textAlign: 'center', color: '#666', fontSize: '12px' }}>
           <p>Thank you for shopping with Basha Collectives.</p>
-          <p>For any queries, contact support@bashacollectives.com</p>
+          <p>For any queries, contact bashacollectives@gmail.com</p>
         </div>
       </div>
     </div>

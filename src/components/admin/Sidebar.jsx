@@ -18,6 +18,7 @@ const navItems = [
   { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
   { name: 'Customers', path: '/admin/customers', icon: Users },
   { name: 'Catalogue', path: '/admin/catalogue', icon: Package },
+  { name: 'Categories', path: '/admin/categories', icon: Tag },
   { name: 'Coupons', path: '/admin/coupons', icon: Tag },
   { name: 'Queries', path: '/admin/queries', icon: MessageSquare },
   { name: 'Website Content', path: '/admin/content', icon: Image },

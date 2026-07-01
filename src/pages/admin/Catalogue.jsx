@@ -17,8 +17,11 @@ const Catalogue = () => {
     category: 'Apparel',
     price: '',
     stock: '',
-    image: ''
+    image: '',
+    isBestSeller: false,
+    isExclusive: false
   });
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const q = query(collection(db, 'products'), orderBy('timestamp', 'desc'));
@@ -29,28 +32,68 @@ const Catalogue = () => {
       }));
       setProductsData(products);
     });
-    return () => unsubscribe();
+
+    const qCats = query(collection(db, 'categories'), orderBy('timestamp', 'desc'));
+    const unsubCats = onSnapshot(qCats, (snapshot) => {
+      const cats = snapshot.docs.map(doc => doc.data().name);
+      setCategories(cats);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubCats();
+    };
   }, []);
 
-  const handleAddProduct = async (e) => {
+  const openAddModal = () => {
+    setEditingId(null);
+    setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', image: '', isBestSeller: false, isExclusive: false });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (product) => {
+    setEditingId(product.id);
+    setNewProduct({
+      name: product.name,
+      category: product.category || categories[0] || 'Apparel',
+      price: product.price,
+      stock: product.stock,
+      image: product.image || '',
+      isBestSeller: product.isBestSeller || false,
+      isExclusive: product.isExclusive || false
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!newProduct.name || !newProduct.price || !newProduct.stock) return;
 
     try {
-      await addDoc(collection(db, 'products'), {
+      const productData = {
         name: newProduct.name,
-        category: newProduct.category,
+        category: newProduct.category || categories[0] || 'Uncategorized',
         price: parseFloat(newProduct.price),
         stock: parseInt(newProduct.stock),
         image: newProduct.image,
+        isBestSeller: newProduct.isBestSeller,
+        isExclusive: newProduct.isExclusive,
         timestamp: serverTimestamp()
-      });
+      };
+
+      if (editingId) {
+        const { updateDoc } = await import('firebase/firestore');
+        await updateDoc(doc(db, 'products', editingId), productData);
+      } else {
+        await addDoc(collection(db, 'products'), productData);
+      }
 
       setIsModalOpen(false);
-      setNewProduct({ name: '', category: 'Apparel', price: '', stock: '', image: '' });
+      setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', image: '', isBestSeller: false, isExclusive: false });
+      setEditingId(null);
     } catch (error) {
-      console.error("Error adding product: ", error);
-      alert("Failed to add product.");
+      console.error("Error saving product: ", error);
+      alert("Failed to save product.");
     }
   };
 
@@ -76,6 +119,8 @@ const Catalogue = () => {
           stock: prod.stock || 20,
           image: prod.image,
           desc: prod.desc,
+          isBestSeller: false,
+          isExclusive: false,
           timestamp: serverTimestamp()
         });
       }
@@ -113,7 +158,7 @@ const Catalogue = () => {
             {isSeeding ? 'Seeding...' : 'Seed Database'}
           </button>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={openAddModal}
             className="bg-gray-900 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 hover:bg-black transition-colors"
           >
             <Plus size={18} /> Add Product
@@ -128,6 +173,7 @@ const Catalogue = () => {
               <th className="px-6 py-4">Product Name</th>
               <th className="px-6 py-4">Category</th>
               <th className="px-6 py-4">Price</th>
+              <th className="px-6 py-4">Tags</th>
               <th className="px-6 py-4">Stock</th>
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
@@ -141,13 +187,17 @@ const Catalogue = () => {
                 </td>
                 <td className="px-6 py-4">{product.category}</td>
                 <td className="px-6 py-4">₹{product.price.toFixed(2)}</td>
+                <td className="px-6 py-4 flex gap-2">
+                  {product.isBestSeller && <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">Best Seller</span>}
+                  {product.isExclusive && <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">Exclusive</span>}
+                </td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.stock > 10 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                     {product.stock} in stock
                   </span>
                 </td>
                 <td className="px-6 py-4 flex justify-end gap-2">
-                  <button className="p-2 hover:bg-gray-200 rounded-md transition-colors text-gray-600">
+                  <button onClick={() => openEditModal(product)} className="p-2 hover:bg-gray-200 rounded-md transition-colors text-gray-600">
                     <Edit2 size={18} />
                   </button>
                   <button onClick={() => handleDeleteProduct(product.id)} className="p-2 hover:bg-red-100 text-red-600 rounded-md transition-colors">
@@ -158,7 +208,7 @@ const Catalogue = () => {
             ))}
             {filteredProducts.length === 0 && (
               <tr>
-                <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
                   No products found. Add a new product to get started.
                 </td>
               </tr>
@@ -167,16 +217,16 @@ const Catalogue = () => {
         </table>
       </div>
 
-      {/* Add Product Modal */}
+      {/* Add/Edit Product Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-xl relative">
+          <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
             <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900">
               <X size={20} />
             </button>
-            <h2 className="text-xl font-serif text-gray-900 mb-6">Add New Product</h2>
+            <h2 className="text-xl font-serif text-gray-900 mb-6">{editingId ? 'Edit Product' : 'Add New Product'}</h2>
             
-            <form onSubmit={handleAddProduct} className="space-y-4">
+            <form onSubmit={handleSaveProduct} className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-600 mb-1">Product Name</label>
                 <input 
@@ -191,10 +241,10 @@ const Catalogue = () => {
                   value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}
                   className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
                 >
-                  <option>Apparel</option>
-                  <option>Jewelry</option>
-                  <option>Accessories</option>
-                  <option>Home</option>
+                  {categories.length === 0 && <option value="">No Categories Found</option>}
+                  {categories.map((cat, idx) => (
+                    <option key={idx} value={cat}>{cat}</option>
+                  ))}
                 </select>
               </div>
               <div className="flex gap-4">
@@ -223,12 +273,23 @@ const Catalogue = () => {
                   className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
                 />
               </div>
+
+              <div className="flex gap-4 pt-2 border-t border-gray-200">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={newProduct.isBestSeller} onChange={e => setNewProduct({...newProduct, isBestSeller: e.target.checked})} className="rounded text-gray-900 focus:ring-gray-900" />
+                  <span className="text-sm text-gray-700">Best Seller</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={newProduct.isExclusive} onChange={e => setNewProduct({...newProduct, isExclusive: e.target.checked})} className="rounded text-gray-900 focus:ring-gray-900" />
+                  <span className="text-sm text-gray-700">Exclusive</span>
+                </label>
+              </div>
               
               <button 
                 type="submit"
                 className="w-full bg-gray-900 text-white py-3 rounded-md font-medium hover:bg-black transition-colors mt-4"
               >
-                Save Product
+                {editingId ? 'Update Product' : 'Save Product'}
               </button>
             </form>
           </div>

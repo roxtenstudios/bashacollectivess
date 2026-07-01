@@ -1,11 +1,28 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { IMAGES } from '../data/images';
+import { db } from '../services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Section4Quote() {
+  const [bgImage, setBgImage] = useState(IMAGES.floating[0]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.visionImg && data.visionImg.trim() !== '') {
+          setBgImage(data.visionImg);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <section 
       className="relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center px-6 overflow-hidden bg-fixed bg-center bg-cover"
-      style={{ backgroundImage: `url(${IMAGES.floating[0]})` }}
+      style={{ backgroundImage: `url(${bgImage})` }}
     >
       {/* Luxurious Cream Overlay with reduced opacity so image is visible */}
       <div className="absolute inset-0 bg-[#F9F6F0]/50 z-0"></div>

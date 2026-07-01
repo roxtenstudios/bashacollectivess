@@ -1,13 +1,36 @@
+import { useState, useEffect } from 'react';
 import { IMAGES } from '../data/images';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../services/firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export default function Section8Featured() {
-  const pieces = IMAGES.featured;
+  const [featured, setFeatured] = useState(IMAGES.featured);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const q = query(collection(db, 'products'), where('isBestSeller', '==', true));
+    const unsub = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const products = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            image: data.image,
+            title: data.name,
+            price: `₹${data.price.toFixed(2)}`,
+            oldPrice: null // Can add oldPrice logic later if needed
+          };
+        });
+        setFeatured(products.length > 0 ? products : IMAGES.featured);
+      }
+    });
+    return () => unsub();
+  }, []);
   
   // Combine to make a longer carousel for demo
-  const allPieces = [...pieces, ...pieces, ...pieces].map((p, i) => ({ ...p, uniqueId: `${p.id}-${i}` }));
+  const allPieces = [...featured, ...featured, ...featured].map((p, i) => ({ ...p, uniqueId: `${p.id}-${i}` }));
 
   return (
     <section id="bestsellers" className="w-full bg-bgPrimary py-16 md:py-24 flex flex-col gap-12 overflow-hidden">

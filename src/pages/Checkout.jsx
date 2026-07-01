@@ -256,13 +256,59 @@ export default function Checkout() {
                 
                 <div className="flex flex-col gap-4 mt-4">
                   <div className="flex flex-col md:flex-row gap-4">
-                    <input type="text" placeholder="First name" required minLength={2} value={firstName} onChange={e => setFirstName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))} className="w-full bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" />
-                    <input type="text" placeholder="Last name" required minLength={1} value={lastName} onChange={e => setLastName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))} className="w-full bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" />
+                    <input 
+                      type="text" 
+                      placeholder="First name" 
+                      required 
+                      minLength={2} 
+                      pattern="^[A-Za-z\s]+$"
+                      title="Only alphabets and spaces are allowed."
+                      value={firstName} 
+                      onChange={e => setFirstName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))} 
+                      className="w-full bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" 
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Last name" 
+                      required 
+                      minLength={1} 
+                      pattern="^[A-Za-z\s]+$"
+                      title="Only alphabets and spaces are allowed."
+                      value={lastName} 
+                      onChange={e => setLastName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))} 
+                      className="w-full bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" 
+                    />
                   </div>
-                  <input type="text" placeholder="Address" required minLength={10} value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" />
+                  <input 
+                    type="text" 
+                    placeholder="Address" 
+                    required 
+                    minLength={10} 
+                    value={address} 
+                    onChange={e => setAddress(e.target.value)} 
+                    className="w-full bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" 
+                  />
                   <div className="flex flex-col md:flex-row gap-4">
-                    <input type="text" placeholder="City" required value={city} onChange={e => setCity(e.target.value.replace(/[^a-zA-Z\s]/g, ''))} className="w-full md:w-1/3 bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" />
-                    <input type="text" placeholder="State" required value={state} onChange={e => setState(e.target.value.replace(/[^a-zA-Z\s]/g, ''))} className="w-full md:w-1/3 bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" />
+                    <input 
+                      type="text" 
+                      placeholder="City" 
+                      required 
+                      pattern="^[A-Za-z\s]+$"
+                      title="Only alphabets and spaces are allowed."
+                      value={city} 
+                      onChange={e => setCity(e.target.value.replace(/[^a-zA-Z\s]/g, ''))} 
+                      className="w-full md:w-1/3 bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" 
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="State" 
+                      required 
+                      pattern="^[A-Za-z\s]+$"
+                      title="Only alphabets and spaces are allowed."
+                      value={state} 
+                      onChange={e => setState(e.target.value.replace(/[^a-zA-Z\s]/g, ''))} 
+                      className="w-full md:w-1/3 bg-bgSecondary/50 border border-border/30 px-6 py-4 font-sans text-sm rounded-xl focus:outline-none focus:border-textPrimary focus:bg-white transition-all duration-300 placeholder:text-textSecondary/60" 
+                    />
                     <input 
                       type="text" 
                       placeholder="PIN code (6 digits)" 

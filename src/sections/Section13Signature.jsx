@@ -1,17 +1,29 @@
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { IMAGES } from '../data/images';
+import { db } from '../services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Section13Signature() {
   const containerRef = useRef(null);
   const galleryRef = useRef(null);
+  const [media, setMedia] = useState([...IMAGES.storeProducts.map(p => p.image)]);
 
-  // Pool of images to populate our custom grid
-  const imgPool = [...IMAGES.storeProducts, ...IMAGES.storeProducts];
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.galleryWallMedia && data.galleryWallMedia.length > 0) {
+          setMedia(data.galleryWallMedia);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
 
   useGSAP(() => {
     const getScrollAmount = () => {
@@ -31,7 +43,88 @@ export default function Section13Signature() {
         invalidateOnRefresh: true,
       }
     });
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [media] });
+
+  // Group media into repeating layout pattern: [1, 5, 1, 5]
+  const renderBlocks = () => {
+    let blocks = [];
+    let i = 0;
+    let blockIndex = 0;
+    
+    // If not enough media to make it look good, duplicate it
+    let workingMedia = [...media];
+    if (workingMedia.length < 11) {
+       workingMedia = [...workingMedia, ...workingMedia, ...workingMedia].slice(0, 11);
+    }
+
+    while (i < workingMedia.length) {
+      const type = blockIndex % 4;
+
+      if (type === 0 || type === 2) {
+        // Tall Rectangle
+        blocks.push(
+          <div key={i} className="w-[60vw] md:w-[30vw] shrink-0 h-full p-2 bg-white shadow-sm border border-border/20">
+            <img src={workingMedia[i]} className="w-full h-full object-cover" alt="Gallery" />
+          </div>
+        );
+        i += 1;
+      } else if (type === 1) {
+        // Complex Grid 1
+        blocks.push(
+          <div key={i} className="w-[120vw] md:w-[70vw] shrink-0 h-full flex flex-col gap-2 md:gap-4">
+             <div className="flex h-[50%] gap-2 md:gap-4">
+                <div className="flex-[4] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+                <div className="flex-[3] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i+1] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+                <div className="flex-[4] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i+2] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+             </div>
+             <div className="flex h-[50%] gap-2 md:gap-4">
+                <div className="flex-[3] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i+3] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+                <div className="flex-[8] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i+4] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+             </div>
+          </div>
+        );
+        i += 5;
+      } else if (type === 3) {
+        // Complex Grid 2 (Mirror)
+        blocks.push(
+          <div key={i} className="w-[120vw] md:w-[70vw] shrink-0 h-full flex flex-col gap-2 md:gap-4">
+             <div className="flex h-[50%] gap-2 md:gap-4">
+                <div className="flex-[8] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+                <div className="flex-[3] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i+1] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+             </div>
+             <div className="flex h-[50%] gap-2 md:gap-4">
+                <div className="flex-[4] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i+2] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+                <div className="flex-[3] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i+3] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+                <div className="flex-[4] p-2 bg-white shadow-sm border border-border/20">
+                   <img src={workingMedia[i+4] || workingMedia[0]} className="w-full h-full object-cover" alt="Gallery" />
+                </div>
+             </div>
+          </div>
+        );
+        i += 5;
+      }
+      blockIndex++;
+    }
+    return blocks;
+  };
 
   return (
     <section ref={containerRef} className="w-full h-screen bg-[#FAFAFA] relative overflow-hidden flex flex-col items-center justify-center border-t border-border gap-12 md:gap-16">
@@ -47,68 +140,9 @@ export default function Section13Signature() {
       <div className="w-full h-[50vh] md:h-[60vh]">
         {/* The sliding track */}
         <div ref={galleryRef} className="flex h-full px-6 md:px-12 gap-2 md:gap-4" style={{ width: 'max-content' }}>
-          
-          {/* BLOCK 1: Tall Rectangle */}
-          <div className="w-[60vw] md:w-[30vw] shrink-0 h-full p-2 bg-white shadow-sm border border-border/20">
-             <img src={imgPool[0]?.image} className="w-full h-full object-cover" alt="Gallery" />
-          </div>
-
-          {/* BLOCK 2: Complex Middle Grid (Matches Wireframe exactly) */}
-          <div className="w-[120vw] md:w-[70vw] shrink-0 h-full flex flex-col gap-2 md:gap-4">
-             {/* Top Row */}
-             <div className="flex h-[50%] gap-2 md:gap-4">
-                <div className="flex-[4] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[1]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-                <div className="flex-[3] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[2]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-                <div className="flex-[4] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[3]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-             </div>
-             {/* Bottom Row */}
-             <div className="flex h-[50%] gap-2 md:gap-4">
-                <div className="flex-[3] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[4]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-                <div className="flex-[8] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[5]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-             </div>
-          </div>
-
-          {/* BLOCK 3: Tall Rectangle */}
-          <div className="w-[60vw] md:w-[30vw] shrink-0 h-full p-2 bg-white shadow-sm border border-border/20">
-             <img src={imgPool[6]?.image} className="w-full h-full object-cover" alt="Gallery" />
-          </div>
-
-          {/* BLOCK 4: Mirror of the Complex Grid to keep the scroll going */}
-          <div className="w-[120vw] md:w-[70vw] shrink-0 h-full flex flex-col gap-2 md:gap-4">
-             <div className="flex h-[50%] gap-2 md:gap-4">
-                <div className="flex-[8] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[7]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-                <div className="flex-[3] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[8]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-             </div>
-             <div className="flex h-[50%] gap-2 md:gap-4">
-                <div className="flex-[4] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[9]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-                <div className="flex-[3] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[10]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-                <div className="flex-[4] p-2 bg-white shadow-sm border border-border/20">
-                   <img src={imgPool[1]?.image} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-             </div>
-          </div>
-
+          {renderBlocks()}
         </div>
       </div>
-
     </section>
   );
 }

@@ -11,7 +11,6 @@ export default function Section6Lookbook() {
   const timeoutRef = useRef(null);
   const navigate = useNavigate();
 
-  // Auto scroll every 2 seconds
   const resetTimeout = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -22,15 +21,14 @@ export default function Section6Lookbook() {
     const unsub = onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const newItems = [...IMAGES.lookbook]; // Base fallback
-        
-        for (let i = 1; i <= 5; i++) {
-          const url = data[`lookbook${i}`];
-          if (url && url.trim() !== '') {
-            newItems[i - 1] = { ...newItems[i - 1], src: url };
-          }
+        if (data.lookbookMedia && data.lookbookMedia.length > 0) {
+          const newItems = data.lookbookMedia.map((url, idx) => ({
+            src: url,
+            title: `Style ${idx + 1}`,
+            id: idx
+          }));
+          setItems(newItems);
         }
-        setItems(newItems);
       }
     });
     return () => unsub();
@@ -40,7 +38,7 @@ export default function Section6Lookbook() {
     resetTimeout();
     timeoutRef.current = setTimeout(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1));
-    }, 2000);
+    }, 3000);
 
     return () => resetTimeout();
   }, [currentIndex, items]);
@@ -57,7 +55,7 @@ export default function Section6Lookbook() {
   return (
     <section id="lookbook" className="w-full bg-bgPrimary pt-24 md:pt-32 pb-12 flex flex-col items-center overflow-hidden">
       
-      <div className="flex flex-col gap-2 items-center text-center px-6 mb-6">
+      <div className="flex flex-col gap-2 items-center text-center px-6 mb-8 md:mb-12">
         <span className="font-sans text-xs tracking-[0.2em] uppercase text-textSecondary">
           Curated Styles
         </span>
@@ -66,39 +64,40 @@ export default function Section6Lookbook() {
         </h2>
       </div>
 
-      <div className="relative w-full h-[55vh] md:h-[65vh] -mt-8 flex items-center justify-center">
-        
+      <div className="relative w-full h-[55vh] md:h-[65vh] flex items-center justify-center">
         <div className="absolute w-full h-full flex justify-center items-center perspective-1000">
-          <AnimatePresence initial={false}>
-            {/* Render 5 items: center, 2 left, 2 right to simulate infinite loop */}
-            {[-2, -1, 0, 1, 2].map((offset) => {
+            {items.map((item, index) => {
+              // Calculate continuous circular offset
+              let offset = index - (currentIndex % items.length);
+              if (offset < -Math.floor(items.length / 2)) offset += items.length;
+              if (offset > Math.floor(items.length / 2)) offset -= items.length;
               
-              // Map continuous index to array bounds for circular array
-              const absoluteIndex = currentIndex + offset;
-              const mappedIndex = ((absoluteIndex % items.length) + items.length) % items.length;
-              const item = items[mappedIndex];
               const isCenter = offset === 0;
+              const absOffset = Math.abs(offset);
+              // Hide elements that are too far away (e.g. > 2)
+              const isVisible = absOffset <= 2;
               
               return (
                 <motion.div
-                  key={absoluteIndex} // Use absolute index for infinite forward/backward animation
+                  key={item.id || index}
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
                   onDragEnd={handleDragEnd}
+                  initial={false}
                   animate={{
-                    // Increased offset multiplier to prevent collision
-                    x: offset * (window.innerWidth < 768 ? 160 : 300), 
-                    scale: isCenter ? 1 : 0.8, // Slightly bigger side items for better visibility
-                    zIndex: isCenter ? 30 : 20 - Math.abs(offset),
-                    opacity: isCenter ? 1 : (Math.abs(offset) === 1 ? 0.7 : 0.3), // Clearer opacity stepping
+                    x: offset * (window.innerWidth < 768 ? 140 : 260), 
+                    scale: isCenter ? 1 : Math.max(0.65, 1 - absOffset * 0.15),
+                    zIndex: items.length - absOffset,
+                    opacity: isCenter ? 1 : (isVisible ? Math.max(0.4, 1 - absOffset * 0.25) : 0),
                   }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className={`absolute w-[65vw] md:w-[30vw] aspect-[3/4] cursor-grab active:cursor-grabbing
-                    ${isCenter ? 'bg-white p-3 md:p-4 shadow-2xl border-[8px] md:border-[12px] border-white cursor-pointer hover:scale-[1.02] transition-transform' : 'bg-transparent shadow-md'}
-                  `}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  className={`absolute w-[65vw] md:w-[30vw] max-w-[400px] aspect-[4/5] cursor-grab active:cursor-grabbing pointer-events-${isVisible ? 'auto' : 'none'} bg-white p-3 md:p-4 shadow-xl border border-gray-100 ${isCenter ? 'hover:scale-[1.02] cursor-pointer shadow-2xl' : ''}`}
                   onClick={() => {
-                    if (!isCenter) setCurrentIndex(currentIndex + offset);
-                    else navigate('/store');
+                    if (!isCenter && isVisible) {
+                      setCurrentIndex(currentIndex + offset);
+                    } else if (isCenter) {
+                      navigate('/store');
+                    }
                   }}
                 >
                   <div className="w-full h-full overflow-hidden bg-bgSecondary">
@@ -111,9 +110,7 @@ export default function Section6Lookbook() {
                 </motion.div>
               );
             })}
-          </AnimatePresence>
         </div>
-
       </div>
 
       <div className="mt-4 text-center h-[50px] relative w-full flex justify-center">

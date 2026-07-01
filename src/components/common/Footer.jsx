@@ -40,7 +40,7 @@ export default function Footer() {
             Redefining modern luxury through intentional design, heritage craftsmanship, and avant-garde silhouettes.
           </p>
           <div className="flex flex-col gap-1 font-sans text-xs text-textSecondary mt-2">
-            <a href="mailto:bashacollectives@outlook.com" className="hover:text-textPrimary transition-colors">bashacollectives@outlook.com</a>
+            <a href="mailto:bashacollectives@gmail.com" className="hover:text-textPrimary transition-colors">bashacollectives@gmail.com</a>
             <a href="tel:+917617787238" className="hover:text-textPrimary transition-colors">+91 761 778 7238 (Support / WhatsApp)</a>
           </div>
           <a href="/#newsletter" onClick={(e) => handleLinkClick(e, '/#newsletter')} className="w-fit text-xs font-sans tracking-[0.2em] uppercase border-b border-border pb-1 hover:border-textPrimary transition-colors mt-4 text-textPrimary">
@@ -56,7 +56,7 @@ export default function Footer() {
               <li><Link to="/store" className="hover:text-accent transition-colors">The Main Store</Link></li>
               <li><a href="/#bestsellers" onClick={(e) => handleLinkClick(e, '/#bestsellers')} className="hover:text-accent transition-colors">Best Sellers</a></li>
               <li><a href="/#lookbook" onClick={(e) => handleLinkClick(e, '/#lookbook')} className="hover:text-accent transition-colors">Lookbook</a></li>
-              <li><a href="/#collection" onClick={(e) => handleLinkClick(e, '/#collection')} className="hover:text-accent transition-colors">Collections</a></li>
+              <li><a href="/#exclusive" onClick={(e) => handleLinkClick(e, '/#exclusive')} className="hover:text-accent transition-colors">Exclusive</a></li>
             </ul>
           </div>
           

@@ -1,7 +1,24 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { IMAGES } from '../data/images';
+import { db } from '../services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Section2Philosophy() {
+  const [philosophyImg, setPhilosophyImg] = useState(IMAGES.philosophy);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.philosophyImg && data.philosophyImg.trim() !== '') {
+          setPhilosophyImg(data.philosophyImg);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <section id="about" className="w-full bg-bgPrimary py-20 px-4 md:px-8 flex flex-col gap-8">
       
@@ -35,7 +52,7 @@ export default function Section2Philosophy() {
           className="w-full md:w-1/2 h-[50vh] md:h-auto bg-bgSecondary rounded-[24px] shadow-soft overflow-hidden relative group"
         >
           <img 
-            src={IMAGES.philosophy} 
+            src={philosophyImg} 
             alt="Philosophy" 
             className="w-full h-full object-cover transition-transform duration-1200 group-hover:scale-105"
           />

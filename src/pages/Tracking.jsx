@@ -153,10 +153,10 @@ export default function Tracking() {
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-border/40 pb-6">
                 <div>
                   <span className="font-sans text-[10px] uppercase tracking-widest text-textSecondary">Active Shipment</span>
-                  <h2 className="font-serif text-lg md:text-xl text-textPrimary mt-1 flex items-baseline gap-1.5">
-                    Order <span className="font-mono text-xs md:text-sm uppercase tracking-wider font-normal text-textSecondary select-all">#{order.id.toUpperCase()}</span>
+                  <h2 className="font-sans text-sm md:text-base uppercase font-semibold text-textPrimary mt-2 tracking-wider flex items-center gap-2">
+                    ORDER <span className="text-textSecondary select-all">#{order.id.toUpperCase()}</span>
                   </h2>
-                  <div className="flex items-center gap-2 text-textSecondary mt-2">
+                  <div className="flex items-center gap-2 text-textSecondary mt-3">
                     <Calendar size={14} />
                     <span className="font-sans text-xs">Placed on {order.date}</span>
                   </div>

@@ -100,7 +100,7 @@ export default function FullscreenMenu({ onClose }) {
         variants={linkVariants}
         className="absolute bottom-10 left-10 text-sm text-textSecondary"
       >
-        bashacollectives@outlook.com<br/>
+        bashacollectives@gmail.com<br/>
         +91 761 778 7238<br/>
         Copenhagen, DK
       </motion.div>

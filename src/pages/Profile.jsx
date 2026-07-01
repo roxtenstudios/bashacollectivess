@@ -127,60 +127,70 @@ export default function Profile() {
       exit={{ opacity: 0 }}
       className="w-full min-h-screen bg-bgPrimary pt-24 md:pt-32 pb-24"
     >
-      <div className="max-w-6xl mx-auto px-6">
-        <h1 className="font-serif text-3xl md:text-4xl text-textPrimary mb-8">My Account</h1>
+      <div className="max-w-4xl mx-auto px-6">
         
-        <div className="flex flex-col md:flex-row gap-12">
-          
-          {/* Sidebar */}
-          <div className={`w-full md:w-1/4 flex flex-col gap-2 ${tab ? 'hidden md:flex' : 'flex'}`}>
-            <button 
-              onClick={() => navigate('/profile/details')}
-              className={`flex items-center gap-3 px-4 py-3 text-left font-sans text-xs tracking-[0.1em] uppercase transition-colors ${activeTab === 'details' ? 'bg-black text-white' : 'text-textSecondary hover:bg-gray-100 hover:text-textPrimary'}`}
-            >
-              <User size={16} /> Personal Details
-            </button>
-            <button 
-              onClick={() => navigate('/profile/orders')}
-              className={`flex items-center gap-3 px-4 py-3 text-left font-sans text-xs tracking-[0.1em] uppercase transition-colors ${activeTab === 'orders' ? 'bg-black text-white' : 'text-textSecondary hover:bg-gray-100 hover:text-textPrimary'}`}
-            >
-              <Package size={16} /> Order History
-            </button>
-            <button 
-              onClick={() => navigate('/profile/legal')}
-              className={`flex items-center gap-3 px-4 py-3 text-left font-sans text-xs tracking-[0.1em] uppercase transition-colors ${activeTab === 'legal' ? 'bg-black text-white' : 'text-textSecondary hover:bg-gray-100 hover:text-textPrimary'}`}
-            >
-              <FileText size={16} /> Legal & Policies
-            </button>
-            
-            <div className="mt-8 pt-4 border-t border-border">
+        {!tab ? (
+          <>
+            <h1 className="font-serif text-3xl md:text-4xl text-textPrimary mb-8 text-center">My Account</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button 
+                onClick={() => navigate('/profile/details')}
+                className="flex items-center justify-between p-6 bg-white border border-border hover:border-textPrimary transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <User size={24} className="text-textSecondary" />
+                  <span className="font-sans text-sm tracking-[0.1em] uppercase">Personal Details</span>
+                </div>
+                <span className="text-textSecondary">→</span>
+              </button>
+
+              <button 
+                onClick={() => navigate('/profile/orders')}
+                className="flex items-center justify-between p-6 bg-white border border-border hover:border-textPrimary transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <Package size={24} className="text-textSecondary" />
+                  <span className="font-sans text-sm tracking-[0.1em] uppercase">Order History</span>
+                </div>
+                <span className="text-textSecondary">→</span>
+              </button>
+
+              <button 
+                onClick={() => navigate('/profile/legal')}
+                className="flex items-center justify-between p-6 bg-white border border-border hover:border-textPrimary transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <FileText size={24} className="text-textSecondary" />
+                  <span className="font-sans text-sm tracking-[0.1em] uppercase">Legal & Policies</span>
+                </div>
+                <span className="text-textSecondary">→</span>
+              </button>
+
               <button 
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-3 text-left font-sans text-xs tracking-[0.1em] uppercase text-red-500 hover:bg-red-50 transition-colors w-full"
+                className="flex items-center justify-between p-6 bg-red-50 border border-red-100 hover:border-red-300 transition-colors"
               >
-                <LogOut size={16} /> Sign Out
+                <div className="flex items-center gap-4">
+                  <LogOut size={24} className="text-red-500" />
+                  <span className="font-sans text-sm tracking-[0.1em] uppercase text-red-600">Sign Out</span>
+                </div>
               </button>
             </div>
-          </div>
-
-          {/* Main Content */}
-          <div className={`w-full md:w-3/4 ${tab ? 'block' : 'hidden md:block'}`}>
-            
-            {/* Mobile Back Button */}
-            {tab && (
-              <button 
-                onClick={() => navigate('/profile')}
-                className="md:hidden flex items-center gap-2 mb-8 text-textSecondary hover:text-textPrimary font-sans text-xs uppercase tracking-widest transition-colors"
-              >
-                <span className="text-lg">←</span> Back to Profile Menu
-              </button>
-            )}
+          </>
+        ) : (
+          <div>
+            <button 
+              onClick={() => navigate('/profile')}
+              className="flex items-center gap-2 mb-8 text-textSecondary hover:text-textPrimary font-sans text-xs uppercase tracking-widest transition-colors"
+            >
+              <span className="text-lg">←</span> Back to Menu
+            </button>
             
             {/* Personal Details Tab */}
             {activeTab === 'details' && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 border border-border">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 border border-border max-w-2xl mx-auto">
                 <h2 className="font-serif text-2xl text-textPrimary mb-6">Personal Details</h2>
-                <form onSubmit={handleUpdateDetails} className="space-y-6 max-w-lg">
+                <form onSubmit={handleUpdateDetails} className="space-y-6">
                   <div>
                     <label className="block font-sans text-xs uppercase tracking-widest text-textSecondary mb-2">Email Address (Cannot be changed)</label>
                     <input 
@@ -227,7 +237,7 @@ export default function Profile() {
                   </div>
                   <button 
                     type="submit" disabled={isSaving}
-                    className="py-4 px-8 bg-textPrimary text-white font-sans text-xs tracking-[0.2em] uppercase hover:bg-black transition-colors disabled:opacity-50"
+                    className="w-full py-4 bg-textPrimary text-white font-sans text-xs tracking-[0.2em] uppercase hover:bg-black transition-colors disabled:opacity-50"
                   >
                     {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -251,19 +261,19 @@ export default function Profile() {
                         {/* Header section - Clickable to track */}
                         <div 
                           onClick={() => navigate(`/tracking/${order.id}`)}
-                          className="flex justify-between items-start border-b border-border pb-4 cursor-pointer group"
+                          className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-border pb-4 cursor-pointer group"
                         >
-                          <div className="grid grid-cols-2 gap-4 md:gap-8">
-                            <div>
+                          <div className="flex flex-col sm:flex-row gap-4 md:gap-8 flex-1 min-w-0">
+                            <div className="flex-1 min-w-0">
                               <span className="block font-sans text-[10px] uppercase tracking-widest text-textSecondary mb-1">Order ID</span>
-                              <span className="font-sans text-xs font-semibold text-textPrimary group-hover:underline uppercase tracking-wider">{order.id.toUpperCase()}</span>
+                              <span className="font-sans text-xs font-semibold text-textPrimary group-hover:underline uppercase tracking-wider break-all">{order.id.toUpperCase()}</span>
                             </div>
-                            <div>
+                            <div className="shrink-0">
                               <span className="block font-sans text-[10px] uppercase tracking-widest text-textSecondary mb-1">Order Date</span>
                               <span className="font-sans text-xs text-textPrimary">{order.date}</span>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-left sm:text-right shrink-0">
                             <span className="block font-sans text-[10px] uppercase tracking-widest text-textSecondary mb-1">Total Amount</span>
                             <span className="font-serif text-base md:text-lg text-textPrimary">₹{order.total?.toFixed(2)}</span>
                           </div>
@@ -279,7 +289,7 @@ export default function Profile() {
                           </div>
                           
                           <button
-                            onClick={() => navigate(`/tracking/${order.id}`)}
+                            onClick={(e) => { e.stopPropagation(); navigate(`/tracking/${order.id}`); }}
                             className="self-start sm:self-center text-xs font-sans uppercase tracking-[0.15em] font-semibold text-accent hover:text-textPrimary transition-colors flex items-center gap-1.5"
                           >
                             Track Shipment <Package size={14} />
@@ -290,7 +300,7 @@ export default function Profile() {
                           <div className="p-4 bg-red-50 border border-red-100 flex flex-col items-start gap-3">
                             <span className="font-sans text-sm text-red-800 font-medium">Your payment could not be verified.</span>
                             <button 
-                              onClick={() => setRetryOrder(order)}
+                              onClick={(e) => { e.stopPropagation(); setRetryOrder(order); }}
                               className="px-4 py-2 bg-red-600 text-white font-sans text-xs uppercase tracking-widest hover:bg-red-700 transition-colors"
                             >
                               Retry Payment
@@ -337,15 +347,14 @@ export default function Profile() {
                 <p>Returns are accepted within 14 days of delivery for store credit only. Items must be unworn and in original condition with tags attached. Custom pieces and jewelry are final sale.</p>
               </motion.div>
             )}
-
           </div>
-        </div>
+        )}
       </div>
 
       {/* Retry Payment Modal */}
       {retryOrder && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-bgPrimary w-full max-w-md p-8 relative shadow-2xl flex flex-col gap-6">
+          <div className="bg-bgPrimary w-full max-w-md p-6 md:p-8 relative shadow-2xl flex flex-col gap-6">
             <button 
               onClick={() => setRetryOrder(null)}
               className="absolute top-4 right-4 text-textSecondary hover:text-textPrimary transition-colors"
@@ -358,38 +367,38 @@ export default function Profile() {
               <span className="font-sans text-xs text-textSecondary">Copy the UPI ID below to pay securely via any UPI App. Amount is locked.</span>
             </div>
             
-            <div className="border border-border p-8 flex flex-col items-center gap-8 bg-white/5">
+            <div className="border border-border p-6 flex flex-col items-center gap-6 bg-white/5">
               <div className="flex flex-col items-center gap-2 w-full max-w-sm">
-                <span className="font-sans text-xs text-textSecondary uppercase tracking-widest">Official UPI ID</span>
-                <div className="flex items-center justify-between w-full bg-white px-4 py-3 border border-border shadow-sm">
-                  <span className="font-serif text-lg text-textPrimary font-bold select-all">{merchantVpa}</span>
+                <span className="font-sans text-[10px] text-textSecondary uppercase tracking-widest block mb-1">Official UPI ID</span>
+                <div className="flex items-center justify-between w-full bg-white px-4 py-3 md:px-5 md:py-4 rounded-xl border border-border/50 shadow-sm gap-2">
+                  <span className="font-sans text-sm md:text-base text-textPrimary font-semibold select-all truncate flex-1">{merchantVpa}</span>
                   <button 
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(merchantVpa);
                       alert('UPI ID Copied to clipboard!');
                     }}
-                    className="flex items-center gap-1 text-xs uppercase font-sans tracking-widest text-textPrimary hover:opacity-70 transition-opacity"
+                    className="flex items-center gap-2 text-[10px] md:text-xs uppercase font-sans tracking-widest text-textPrimary hover:opacity-70 transition-opacity bg-bgSecondary/50 px-3 py-2 md:px-4 rounded-lg shrink-0"
                   >
                     <Copy size={14} /> Copy
                   </button>
                 </div>
               </div>
               
-              <div className="flex flex-col items-center gap-3 text-center">
-                <p className="font-sans text-sm font-medium">Scan with any UPI App</p>
-                <p className="font-sans text-xs text-textSecondary">GPay, PhonePe, Paytm, CRED, etc.</p>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <p className="font-sans text-sm font-medium text-textPrimary">Scan with any UPI App</p>
+                <p className="font-sans text-[10px] md:text-xs text-textSecondary">GPay, PhonePe, Paytm, CRED, etc.</p>
               </div>
 
               <div className="w-full flex items-center gap-4">
                 <div className="h-px bg-border flex-1"></div>
-                <span className="font-sans text-xs text-textSecondary uppercase tracking-widest">OR</span>
+                <span className="font-sans text-[10px] text-textSecondary uppercase tracking-widest">OR</span>
                 <div className="h-px bg-border flex-1"></div>
               </div>
 
               <a 
                 href={`upi://pay?pa=${merchantVpa}&pn=${encodeURIComponent(merchantName)}&am=${retryOrder.total?.toFixed(2)}&cu=INR&mc=5691&tn=Order%20Payment`}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-white text-black border border-black font-sans text-xs tracking-[0.2em] uppercase hover:bg-gray-100 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3.5 border border-textPrimary text-textPrimary font-sans text-xs tracking-[0.2em] uppercase rounded-full hover:bg-textPrimary hover:text-white transition-colors"
               >
                 <QrCode size={16} />
                 Open UPI App to Pay

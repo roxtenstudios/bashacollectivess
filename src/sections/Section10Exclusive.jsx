@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IMAGES } from '../data/images';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../services/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export default function Section10Exclusive() {
   const [active, setActive] = useState(IMAGES.storeProducts[0].id);
@@ -11,18 +11,23 @@ export default function Section10Exclusive() {
   const navigate = useNavigate();
   
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const newExclusives = [...IMAGES.storeProducts.slice(0, 4)]; // Base fallback
-        
-        for (let i = 1; i <= 4; i++) {
-          const url = data[`exclusive${i}`];
-          if (url && url.trim() !== '') {
-            newExclusives[i - 1] = { ...newExclusives[i - 1], image: url };
-          }
+    const q = query(collection(db, 'products'), where('isExclusive', '==', true));
+    const unsub = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const products = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            category: data.category,
+            image: data.image,
+            title: data.name,
+            price: `₹${data.price.toFixed(2)}`
+          };
+        });
+        if (products.length > 0) {
+          setExclusives(products.slice(0, 4)); // Get up to 4
+          setActive(products[0].id);
         }
-        setExclusives(newExclusives);
       }
     });
     return () => unsub();
