@@ -8,7 +8,6 @@ import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 // Mock product generation up to 20 items combining available images
 const sourceImages = [...IMAGES.storeProducts, ...IMAGES.lookbook];
-const categories = ['Banarasi', 'Chiffon', 'Kanjeevaram', 'Silk', 'Georgette'];
 
 export const ALL_PRODUCTS = Array.from({ length: 20 }).map((_, i) => {
   const imgSource = sourceImages[i % sourceImages.length];
@@ -16,9 +15,9 @@ export const ALL_PRODUCTS = Array.from({ length: 20 }).map((_, i) => {
   return {
     title: `Basha Exclusive 0${i + 1}`,
     price: parseFloat((Math.random() * 500 + 150).toFixed(2)),
-    category: categories[i % categories.length],
+    category: 'Uncategorized',
     image: imgSource.image || imgSource.src,
-    stock: 20,
+    stock: Math.floor(Math.random() * 11), // Random stock between 0 and 10 for testing
     desc: 'An exquisite piece crafted with structural integrity and avant-garde sensibilities. Designed for the modern visionary.'
   };
 });
@@ -28,6 +27,7 @@ export default function Store() {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState(location.state?.category || 'All');
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   
   useEffect(() => {
     const q = query(collection(db, 'products'), orderBy('timestamp', 'desc'));
@@ -38,7 +38,17 @@ export default function Store() {
       }));
       setProducts(fetchedProducts);
     });
-    return () => unsubscribe();
+
+    const qCats = query(collection(db, 'categories'), orderBy('timestamp', 'desc'));
+    const unsubCats = onSnapshot(qCats, (snapshot) => {
+      const cats = snapshot.docs.map(doc => doc.data().name);
+      setCategories(cats);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubCats();
+    };
   }, []);
   
   const filteredProducts = useMemo(() => {
@@ -141,6 +151,12 @@ export default function Store() {
               <div className="flex flex-col gap-1 items-center text-center">
                 <h3 className="font-serif text-sm md:text-xl text-textPrimary">{product.name || product.title}</h3>
                 <span className="font-sans text-[10px] md:text-sm tracking-widest text-textSecondary">₹{parseFloat(product.price).toFixed(2)}</span>
+                
+                {product.stock !== undefined && Number(product.stock) === 0 ? (
+                  <span className="font-sans text-[10px] tracking-widest uppercase text-red-500 mt-1">Out of Stock</span>
+                ) : product.stock !== undefined && Number(product.stock) <= 5 ? (
+                  <span className="font-sans text-[10px] tracking-widest uppercase text-orange-500 mt-1">Only {product.stock} left!</span>
+                ) : null}
               </div>
             </Link>
           ))}

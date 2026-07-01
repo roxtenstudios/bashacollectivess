@@ -9,7 +9,8 @@ import {
   Settings, 
   MessageSquare, 
   Image,
-  LogOut
+  LogOut,
+  MonitorPlay
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -21,6 +22,7 @@ const navItems = [
   { name: 'Categories', path: '/admin/categories', icon: Tag },
   { name: 'Coupons', path: '/admin/coupons', icon: Tag },
   { name: 'Queries', path: '/admin/queries', icon: MessageSquare },
+  { name: 'Banners', path: '/admin/banners', icon: MonitorPlay },
   { name: 'Website Content', path: '/admin/content', icon: Image },
   { name: 'Settings', path: '/admin/settings', icon: Settings },
 ];

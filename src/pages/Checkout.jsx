@@ -14,6 +14,12 @@ export default function Checkout() {
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState('');
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   // Form states
   const [email, setEmail] = useState(currentUser?.email || '');
@@ -47,7 +53,21 @@ export default function Checkout() {
 
   const merchantVpa = storeSettings.upiId || '6302383384@superyes';
   const merchantName = 'Basha Collectives';
-  const upiLink = `upi://pay?pa=${merchantVpa}&pn=${encodeURIComponent(merchantName)}&am=${cartTotal.toFixed(2)}&cu=INR&mc=5691&tn=Order%20Payment`;
+  
+  // Calculate final total
+  const shippingCharge = step >= 3 ? 0 : 0; // Keeping shipping logic as before
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === 'Percentage') {
+      const percent = parseFloat(appliedCoupon.value);
+      discountAmount = cartTotal * (percent / 100);
+    } else {
+      discountAmount = parseFloat(appliedCoupon.value.replace(/[^0-9.]/g, ''));
+    }
+  }
+  const finalTotal = Math.max(0, cartTotal - discountAmount + shippingCharge);
+
+  const upiLink = `upi://pay?pa=${merchantVpa}&pn=${encodeURIComponent(merchantName)}&am=${finalTotal.toFixed(2)}&cu=INR&mc=5691&tn=Order%20Payment`;
 
   if (cartItems.length === 0 && !success) {
     return (
@@ -115,6 +135,44 @@ export default function Checkout() {
     }, 1500);
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsApplyingCoupon(true);
+    setCouponError('');
+    try {
+      const q = query(collection(db, 'coupons'), where('code', '==', couponCode.toUpperCase().trim()));
+      const snap = await getDocs(q);
+      
+      if (snap.empty) {
+        setCouponError('Invalid coupon code.');
+        setIsApplyingCoupon(false);
+        return;
+      }
+
+      const couponDoc = snap.docs[0];
+      const couponData = couponDoc.data();
+
+      if (couponData.status !== 'Active') {
+        setCouponError('This coupon is no longer active.');
+        setIsApplyingCoupon(false);
+        return;
+      }
+
+      setAppliedCoupon({ id: couponDoc.id, ...couponData });
+      setCouponCode('');
+    } catch (err) {
+      console.error("Error applying coupon", err);
+      setCouponError('Failed to apply coupon.');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError('');
+  };
+
   const handlePlaceOrder = async () => {
     try {
       const fullAddress = `${address}, ${city}, ${state} ${zip}`;
@@ -123,7 +181,9 @@ export default function Checkout() {
         email: email,
         phone: phone,
         address: fullAddress,
-        total: cartTotal,
+        subtotal: cartTotal,
+        discount: discountAmount,
+        total: finalTotal,
         paymentMethod: paymentMethod,
         paymentVerified: paymentMethod === 'cod' ? 'COD' : null,
         status: 'Processing',
@@ -141,6 +201,32 @@ export default function Checkout() {
       });
 
       setOrderId(newOrderRef.id);
+
+      // Deduct stock for each item
+      for (const item of cartItems) {
+        if (item.id) {
+          const productRef = doc(db, 'products', String(item.id));
+          try {
+            await updateDoc(productRef, {
+              stock: increment(-item.quantity)
+            });
+          } catch (e) {
+            console.error(`Failed to deduct stock for ${item.title}:`, e);
+          }
+        }
+      }
+
+      // Increment coupon usage if a coupon was used
+      if (appliedCoupon) {
+        const couponRef = doc(db, 'coupons', appliedCoupon.id);
+        try {
+          await updateDoc(couponRef, {
+            usage: increment(1)
+          });
+        } catch (e) {
+          console.error("Failed to update coupon usage:", e);
+        }
+      }
 
       const customersRef = collection(db, 'customers');
       const q = query(customersRef, where("email", "==", email));
@@ -160,7 +246,7 @@ export default function Checkout() {
         const customerDoc = querySnapshot.docs[0];
         await updateDoc(doc(db, 'customers', customerDoc.id), {
           orders: increment(1),
-          spent: increment(cartTotal)
+          spent: increment(finalTotal)
         });
       }
 
@@ -500,10 +586,44 @@ export default function Checkout() {
           </div>
 
           <div className="flex flex-col gap-4 border-t border-border/30 pt-6">
+            <div className="flex flex-col gap-2 mb-2">
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="Discount code" 
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  className="flex-1 bg-white border border-border/50 px-4 py-2 font-sans text-sm focus:outline-none focus:border-textPrimary"
+                />
+                <button 
+                  onClick={handleApplyCoupon}
+                  disabled={isApplyingCoupon || !couponCode}
+                  className="bg-gray-200 text-gray-800 px-4 py-2 font-sans text-xs tracking-widest uppercase hover:bg-gray-300 transition-colors disabled:opacity-50"
+                >
+                  Apply
+                </button>
+              </div>
+              {couponError && <p className="text-red-500 text-xs font-sans">{couponError}</p>}
+              {appliedCoupon && (
+                <div className="flex items-center justify-between bg-green-50 px-4 py-2 text-green-800 border border-green-200">
+                  <span className="font-sans text-xs uppercase tracking-widest flex items-center gap-2">
+                    <span className="font-semibold">{appliedCoupon.code}</span> applied
+                  </span>
+                  <button onClick={removeCoupon} className="text-xs hover:underline">Remove</button>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-between font-sans text-sm text-textSecondary">
               <span>Subtotal</span>
               <span>₹{cartTotal.toFixed(2)}</span>
             </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between font-sans text-sm text-green-700">
+                <span>Discount</span>
+                <span>-₹{discountAmount.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-sans text-sm text-textSecondary">
               <span>Shipping</span>
               <span className={step >= 3 ? "text-textPrimary uppercase tracking-widest text-[10px]" : ""}>{step >= 3 ? "FREE" : "Calculated at next step"}</span>
@@ -512,7 +632,7 @@ export default function Checkout() {
 
           <div className="flex justify-between font-sans text-lg text-textPrimary border-t border-border/30 pt-6">
             <span>Total</span>
-            <span className="font-bold">INR ₹{cartTotal.toFixed(2)}</span>
+            <span className="font-bold">INR ₹{finalTotal.toFixed(2)}</span>
           </div>
         </div>
 

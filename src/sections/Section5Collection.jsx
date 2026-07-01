@@ -1,29 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IMAGES } from '../data/images';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
+import { db } from '../services/firebase';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 export default function Section5Collection() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const products = IMAGES.storeProducts;
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const q = query(collection(db, 'products'), orderBy('timestamp', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedProducts = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          title: data.name,
+          price: `₹${parseFloat(data.price).toFixed(2)}`
+        };
+      });
+      setProducts(fetchedProducts);
+    });
+
+    const qCats = query(collection(db, 'categories'), orderBy('timestamp', 'desc'));
+    const unsubCats = onSnapshot(qCats, (snapshot) => {
+      const cats = snapshot.docs.map(doc => doc.data().name);
+      setCategories(cats);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubCats();
+    };
+  }, []);
 
   const tabs = [
     { id: 'all', label: 'ALL' },
-    { id: 'banarasi', label: 'BANARASI' },
-    { id: 'chiffon', label: 'CHIFFON' },
-    { id: 'kanjeevaram', label: 'KANJEEVARAM' },
-    { id: 'silk', label: 'SILK' },
-    { id: 'georgette', label: 'GEORGETTE' }
+    ...categories.map(cat => ({ id: cat.toLowerCase(), label: cat.toUpperCase() }))
   ];
 
   const filteredProducts = products.filter(p => {
-    const matchesTab = activeTab === 'all' || p.category === activeTab;
-    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab = activeTab === 'all' || (p.category && p.category.toLowerCase() === activeTab.toLowerCase());
+    const matchesSearch = p.title && p.title.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesTab && matchesSearch;
-  });
+  }).slice(0, 8); // Show only top 8 on the homepage
 
   return (
     <section id="collection" className="w-full bg-white py-24 md:py-32 flex flex-col gap-16 min-h-screen">

@@ -1,9 +1,24 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { IMAGES } from '../data/images';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { db } from '../services/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Section9Craft() {
+  const [visionImg, setVisionImg] = useState(IMAGES.craft);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.visionImg && data.visionImg.trim() !== '') {
+          setVisionImg(data.visionImg);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
   return (
     <section className="w-full bg-bgPrimary py-24 md:py-32 px-4 md:px-8">
       
@@ -53,7 +68,7 @@ export default function Section9Craft() {
           className="relative z-10 w-full h-[50vh] md:h-[70vh] rounded-[24px] overflow-hidden shadow-soft-hover group cursor-pointer"
         >
           <img 
-            src={IMAGES.craft} 
+            src={visionImg} 
             alt="Campaign Feature" 
             className="w-full h-full object-cover transition-transform duration-1200 ease-lux group-hover:scale-105"
           />

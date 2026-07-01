@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, X } from 'lucide-react';
 import { db } from '../../services/firebase';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, query, orderBy, updateDoc } from 'firebase/firestore';
 import { ALL_PRODUCTS } from '../Store';
+import { uploadImage } from '../../services/uploadImage';
 
 const Catalogue = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,6 +11,9 @@ const Catalogue = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [newImageUrl, setNewImageUrl] = useState('');
 
   // Form states
   const [newProduct, setNewProduct] = useState({
@@ -18,6 +22,7 @@ const Catalogue = () => {
     price: '',
     stock: '',
     image: '',
+    images: [],
     isBestSeller: false,
     isExclusive: false
   });
@@ -47,18 +52,21 @@ const Catalogue = () => {
 
   const openAddModal = () => {
     setEditingId(null);
-    setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', image: '', isBestSeller: false, isExclusive: false });
+    setImageFiles([]);
+    setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', image: '', images: [], isBestSeller: false, isExclusive: false });
     setIsModalOpen(true);
   };
 
   const openEditModal = (product) => {
     setEditingId(product.id);
+    setImageFiles([]);
     setNewProduct({
       name: product.name,
       category: product.category || categories[0] || 'Apparel',
       price: product.price,
       stock: product.stock,
       image: product.image || '',
+      images: product.images || (product.image ? [product.image] : []),
       isBestSeller: product.isBestSeller || false,
       isExclusive: product.isExclusive || false
     });
@@ -68,32 +76,51 @@ const Catalogue = () => {
   const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!newProduct.name || !newProduct.price || !newProduct.stock) return;
+    
+    setIsUploading(true);
 
     try {
+      let finalImages = [...(newProduct.images || [])];
+      
+      if (imageFiles.length > 0) {
+        for (const file of imageFiles) {
+          const url = await uploadImage(file, 'products');
+          finalImages.push(url);
+        }
+      }
+      
+      // If no images were uploaded but there's a primary image string entered manually
+      if (finalImages.length === 0 && newProduct.image) {
+        finalImages.push(newProduct.image);
+      }
+
       const productData = {
         name: newProduct.name,
         category: newProduct.category || categories[0] || 'Uncategorized',
         price: parseFloat(newProduct.price),
         stock: parseInt(newProduct.stock),
-        image: newProduct.image,
+        image: finalImages[0] || '', // primary image for backward compatibility
+        images: finalImages,
         isBestSeller: newProduct.isBestSeller,
         isExclusive: newProduct.isExclusive,
         timestamp: serverTimestamp()
       };
 
       if (editingId) {
-        const { updateDoc } = await import('firebase/firestore');
         await updateDoc(doc(db, 'products', editingId), productData);
       } else {
         await addDoc(collection(db, 'products'), productData);
       }
 
       setIsModalOpen(false);
-      setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', image: '', isBestSeller: false, isExclusive: false });
+      setNewProduct({ name: '', category: categories[0] || 'Apparel', price: '', stock: '', image: '', images: [], isBestSeller: false, isExclusive: false });
       setEditingId(null);
+      setImageFiles([]);
     } catch (error) {
       console.error("Error saving product: ", error);
       alert("Failed to save product.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -118,6 +145,7 @@ const Catalogue = () => {
           price: parseFloat(prod.price),
           stock: prod.stock || 20,
           image: prod.image,
+          images: [prod.image],
           desc: prod.desc,
           isBestSeller: false,
           isExclusive: false,
@@ -266,12 +294,62 @@ const Catalogue = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Image URL</label>
+                <label className="block text-sm text-gray-600 mb-1">Product Images</label>
                 <input 
-                  type="url" placeholder="https://example.com/image.jpg"
-                  value={newProduct.image} onChange={e => setNewProduct({...newProduct, image: e.target.value})}
-                  className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
+                  type="file" 
+                  accept="image/*"
+                  multiple
+                  onChange={e => setImageFiles(Array.from(e.target.files))}
+                  className="w-full bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900 mb-2"
                 />
+                
+                <div className="flex gap-2 mb-2">
+                  <input 
+                    type="url" 
+                    placeholder="Or enter image URL directly"
+                    value={newImageUrl} 
+                    onChange={e => setNewImageUrl(e.target.value)}
+                    className="flex-1 bg-white border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:border-gray-400 text-gray-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newImageUrl.trim()) {
+                        const updated = [...newProduct.images, newImageUrl.trim()];
+                        setNewProduct({...newProduct, images: updated, image: updated[0]});
+                        setNewImageUrl('');
+                      }
+                    }}
+                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors border border-gray-200"
+                  >
+                    Add URL
+                  </button>
+                </div>
+                
+                {/* Image Previews */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {newProduct.images?.map((img, idx) => (
+                    <div key={idx} className="relative group">
+                      <img src={img} alt="Preview" className="h-20 w-20 object-cover rounded border border-gray-200" />
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const updated = [...newProduct.images];
+                          updated.splice(idx, 1);
+                          setNewProduct({...newProduct, images: updated, image: updated[0] || ''});
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  {imageFiles.map((file, idx) => (
+                    <div key={`file-${idx}`} className="relative group">
+                      <img src={URL.createObjectURL(file)} alt="Preview" className="h-20 w-20 object-cover rounded border border-gray-200 opacity-70" />
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="flex gap-4 pt-2 border-t border-gray-200">
@@ -287,9 +365,10 @@ const Catalogue = () => {
               
               <button 
                 type="submit"
-                className="w-full bg-gray-900 text-white py-3 rounded-md font-medium hover:bg-black transition-colors mt-4"
+                disabled={isUploading}
+                className="w-full bg-gray-900 text-white py-3 rounded-md font-medium hover:bg-black transition-colors mt-4 disabled:opacity-50 flex items-center justify-center"
               >
-                {editingId ? 'Update Product' : 'Save Product'}
+                {isUploading ? 'Saving...' : (editingId ? 'Update Product' : 'Save Product')}
               </button>
             </form>
           </div>

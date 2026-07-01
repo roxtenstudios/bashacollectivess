@@ -13,6 +13,7 @@ export default function Product() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
+  const [activeImage, setActiveImage] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [size, setSize] = useState('M');
   const [customSize, setCustomSize] = useState({
@@ -34,6 +35,7 @@ export default function Product() {
             price: `₹${parseFloat(data.price).toFixed(2)}`,
             desc: data.desc || 'An exquisite piece crafted with structural integrity and avant-garde sensibilities.'
           });
+          setActiveImage(data.images?.[0] || data.image);
           return;
         }
       } catch (err) {
@@ -52,10 +54,12 @@ export default function Product() {
           ...found,
           title: found.title || found.name,
           image: found.image || found.src,
+          images: found.images || (found.image ? [found.image] : [found.src]),
           category: found.category || 'Featured',
           price: typeof found.price === 'number' ? `₹${found.price.toFixed(2)}` : String(found.price).replace('$', '₹'),
           desc: found.desc || 'An exquisite piece crafted with structural integrity and avant-garde sensibilities. Designed for the modern visionary.'
         });
+        setActiveImage(found.images?.[0] || found.image || found.src);
       }
     };
     
@@ -90,13 +94,28 @@ export default function Product() {
       </button>
 
       <div className="flex flex-col lg:flex-row gap-12 lg:gap-24">
-        {/* Product Image */}
-        <div className="w-full lg:w-1/2 aspect-[3/4] bg-[#FAFAFA]">
-          <img 
-            src={product.image} 
-            alt={product.title} 
-            className="w-full h-full object-cover"
-          />
+        {/* Product Image Gallery */}
+        <div className="w-full lg:w-1/2 flex flex-col gap-4">
+          <div className="w-full aspect-[3/4] bg-[#FAFAFA]">
+            <img 
+              src={activeImage || product.image} 
+              alt={product.title} 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {product.images.map((img, idx) => (
+                <button 
+                  key={idx} 
+                  onClick={() => setActiveImage(img)} 
+                  className={`w-20 md:w-24 aspect-[3/4] flex-shrink-0 border-2 transition-colors ${activeImage === img ? 'border-textPrimary' : 'border-transparent'}`}
+                >
+                  <img src={img} alt={`${product.title} - view ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Product Details */}

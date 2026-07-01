@@ -31,6 +31,7 @@ import Settings from './pages/admin/Settings';
 import Queries from './pages/admin/Queries';
 import WebsiteContent from './pages/admin/WebsiteContent';
 import Categories from './pages/admin/Categories';
+import BannerManagement from './pages/admin/BannerManagement';
 
 // Utility to scroll to top on route change
 function ScrollToTop() {
@@ -129,6 +130,7 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="queries" element={<Queries />} />
               <Route path="content" element={<WebsiteContent />} />
+              <Route path="banners" element={<BannerManagement />} />
             </Route>
 
             {/* Public Store Routes */}

@@ -29,53 +29,72 @@ export default function Section8Featured() {
     return () => unsub();
   }, []);
   
-  // Combine to make a longer carousel for demo
-  const allPieces = [...featured, ...featured, ...featured].map((p, i) => ({ ...p, uniqueId: `${p.id}-${i}` }));
+  // Use exactly the products fetched, but add uniqueId for rendering
+  const allPieces = featured.map((p, i) => ({ ...p, uniqueId: `${p.id}-${i}` }));
 
   return (
-    <section id="bestsellers" className="w-full bg-bgPrimary py-16 md:py-24 flex flex-col gap-12 overflow-hidden">
+    <section id="bestsellers" className="w-full bg-[#FAF9F6] py-24 md:py-32 flex flex-col gap-16 overflow-hidden border-t border-gray-100">
       
-      <div className="flex flex-col items-center text-center px-6 gap-6">
-        <div className="flex items-center gap-4 w-full max-w-sm justify-center">
-          <div className="h-[1px] bg-textPrimary w-12 opacity-30"></div>
-          <span className="font-sans text-[10px] md:text-xs tracking-[0.25em] uppercase text-textSecondary whitespace-nowrap">
-            Trending Sarees
+      <div className="flex flex-col items-center text-center px-6 gap-6 z-10">
+        <div className="flex items-center gap-6 w-full max-w-md justify-center">
+          <div className="h-[1px] bg-[#D4AF37] w-16 opacity-50"></div>
+          <span className="font-sans text-[10px] md:text-xs tracking-[0.3em] uppercase text-[#D4AF37] whitespace-nowrap">
+            The Icons
           </span>
-          <div className="h-[1px] bg-textPrimary w-12 opacity-30"></div>
+          <div className="h-[1px] bg-[#D4AF37] w-16 opacity-50"></div>
         </div>
-        <h2 className="font-serif text-3xl md:text-4xl tracking-wide text-textPrimary">
+        <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-wide text-gray-900 font-light">
           Best Sellers
         </h2>
+        <p className="font-sans text-sm text-gray-500 max-w-lg mx-auto tracking-wide">
+          Our most coveted pieces, loved by many. Explore the signature styles that define our collection.
+        </p>
       </div>
 
-      <div className="w-full overflow-x-auto snap-x snap-mandatory scrollbar-hide flex items-center px-6 md:px-12 pb-8 pt-4">
-        <div className="flex gap-6 md:gap-12 w-max items-start pr-6 md:pr-12 lg:mx-auto">
+      <div className="w-full overflow-x-auto snap-x snap-mandatory scrollbar-hide flex items-center px-6 md:px-12 pb-16 pt-8">
+        <div className="flex gap-8 md:gap-16 w-max items-start pr-6 md:pr-12 lg:mx-auto">
           {allPieces.map((piece, i) => (
             <motion.div 
               key={piece.uniqueId}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.8, delay: (i % 3) * 0.1, ease: 'easeOut' }}
+              transition={{ duration: 0.8, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
               onClick={() => navigate(`/product/${piece.id}`)}
-              className="group cursor-pointer flex flex-col shrink-0 snap-center w-[80vw] md:w-[400px]"
+              className="group cursor-pointer flex flex-col shrink-0 snap-center w-[85vw] md:w-[360px] relative"
             >
-              <div className="w-full aspect-[2/3] overflow-hidden bg-bgSecondary mb-6">
+              {/* Giant Rank Number */}
+              <div className="absolute -left-6 -top-12 md:-left-10 md:-top-16 font-serif text-[120px] md:text-[160px] text-gray-100 font-bold z-0 pointer-events-none select-none tracking-tighter">
+                {(i + 1).toString().padStart(2, '0')}
+              </div>
+
+              {/* Image Container */}
+              <div className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100 z-10 shadow-sm transition-shadow duration-500 group-hover:shadow-2xl rounded-sm">
                 <img 
                   src={piece.image} 
                   alt={piece.title} 
-                  className="w-full h-full object-cover transition-transform duration-1200 ease-lux group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
                 />
+                
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                  <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                    <span className="bg-white text-black px-8 py-3 text-xs tracking-widest uppercase font-medium shadow-lg rounded-sm">
+                      Discover
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-col items-center text-center w-full gap-3 px-2">
-                <h3 className="font-serif text-2xl md:text-3xl text-textPrimary leading-tight">
+              {/* Text Content */}
+              <div className="flex flex-col items-center text-center w-full gap-3 mt-8 z-10 px-4">
+                <h3 className="font-serif text-xl md:text-2xl text-gray-900 group-hover:text-[#D4AF37] transition-colors duration-300">
                   {piece.title}
                 </h3>
-                <div className="flex items-center justify-center gap-4 font-serif text-base md:text-lg">
-                  <span className="text-textPrimary tracking-wider">{piece.price}</span>
+                <div className="flex flex-col items-center gap-1 font-sans">
+                  <span className="text-gray-900 text-sm tracking-widest font-medium">{piece.price}</span>
                   {piece.oldPrice && (
-                    <span className="text-textSecondary/50 line-through tracking-wider">{piece.oldPrice}</span>
+                    <span className="text-gray-400 text-xs line-through tracking-wider">{piece.oldPrice}</span>
                   )}
                 </div>
               </div>
@@ -83,7 +102,6 @@ export default function Section8Featured() {
           ))}
         </div>
       </div>
-
     </section>
   );
 }

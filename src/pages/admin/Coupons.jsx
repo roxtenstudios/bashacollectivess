@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Plus, Trash2, X, Edit2 } from 'lucide-react';
 import { db } from '../../services/firebase';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, updateDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 
 const Coupons = () => {
   const [couponsData, setCouponsData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [newCoupon, setNewCoupon] = useState({
     code: '',
@@ -15,6 +16,28 @@ const Coupons = () => {
     status: 'Active',
     usage: '0'
   });
+
+  const openAddModal = () => {
+    setEditingId(null);
+    setNewCoupon({ code: '', type: 'Percentage', value: '', status: 'Active', usage: '0' });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (coupon) => {
+    setEditingId(coupon.id);
+    let parsedValue = coupon.value;
+    if (typeof parsedValue === 'string') {
+      parsedValue = parsedValue.replace('%', '').replace('₹', '');
+    }
+    setNewCoupon({
+      code: coupon.code,
+      type: coupon.type,
+      value: parsedValue,
+      status: coupon.status || 'Active',
+      usage: coupon.usage || '0'
+    });
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'coupons'), orderBy('timestamp', 'desc'));
@@ -34,14 +57,21 @@ const Coupons = () => {
     setIsSubmitting(true);
 
     try {
-      await addDoc(collection(db, 'coupons'), {
+      const couponData = {
         code: newCoupon.code.toUpperCase(),
         type: newCoupon.type,
         value: newCoupon.type === 'Percentage' ? `${newCoupon.value}%` : `₹${parseFloat(newCoupon.value).toFixed(2)}`,
         status: newCoupon.status,
         usage: newCoupon.usage,
         timestamp: serverTimestamp()
-      });
+      };
+
+      if (editingId) {
+        await updateDoc(doc(db, 'coupons', editingId), couponData);
+      } else {
+        await addDoc(collection(db, 'coupons'), couponData);
+      }
+
       setIsModalOpen(false);
       setNewCoupon({ code: '', type: 'Percentage', value: '', status: 'Active', usage: '0' });
     } catch (error) {
@@ -67,7 +97,7 @@ const Coupons = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-serif text-gray-900">Coupons</h1>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={openAddModal}
           className="bg-gray-900 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 hover:bg-black transition-colors"
         >
           <Plus size={18} /> Create Coupon
@@ -99,6 +129,9 @@ const Coupons = () => {
                 </td>
                 <td className="px-6 py-4">{coupon.usage}</td>
                 <td className="px-6 py-4 flex justify-end gap-2">
+                  <button onClick={() => openEditModal(coupon)} className="p-2 hover:bg-gray-200 rounded-md transition-colors text-gray-600">
+                    <Edit2 size={18} />
+                  </button>
                   <button onClick={() => handleDeleteCoupon(coupon.id)} className="p-2 hover:bg-red-100 text-red-600 rounded-md transition-colors">
                     <Trash2 size={18} />
                   </button>
@@ -123,7 +156,7 @@ const Coupons = () => {
             <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900">
               <X size={20} />
             </button>
-            <h2 className="text-xl font-serif text-gray-900 mb-6">Create New Coupon</h2>
+            <h2 className="text-xl font-serif text-gray-900 mb-6">{editingId ? 'Edit Coupon' : 'Create New Coupon'}</h2>
             
             <form onSubmit={handleAddCoupon} className="space-y-4">
               <div>
@@ -159,7 +192,7 @@ const Coupons = () => {
                 type="submit" disabled={isSubmitting}
                 className="w-full bg-gray-900 text-white py-3 rounded-md font-medium hover:bg-black transition-colors disabled:opacity-50 mt-4"
               >
-                {isSubmitting ? 'Saving...' : 'Create Coupon'}
+                {isSubmitting ? 'Saving...' : (editingId ? 'Update Coupon' : 'Create Coupon')}
               </button>
             </form>
           </div>
