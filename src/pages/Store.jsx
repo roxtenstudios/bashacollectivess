@@ -89,7 +89,10 @@ export default function Store() {
         </h1>
 
         {/* Seamless blend gradient into the next section */}
-        <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-bgPrimary to-bgPrimary/0 z-10 pointer-events-none"></div>
+        <div 
+          className="absolute -bottom-1 left-0 w-full h-10 z-10 pointer-events-none"
+          style={{ background: 'linear-gradient(to top, #F7F4EE 10%, rgba(247, 244, 238, 0))' }}
+        ></div>
       </section>
 
       {/* Toolbar */}
@@ -142,7 +145,7 @@ export default function Store() {
         {/* Changed grid-cols-1 to grid-cols-2 for mobile to have 2 products per row */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-12 md:gap-x-6 md:gap-y-16">
           {filteredProducts.map((product) => (
-            <Link to={`/product/${product.id}`} key={product.id} className="group flex flex-col gap-4 cursor-pointer">
+            <Link to={`/product/${product.id}`} key={product.id} className="group flex flex-col gap-4 cursor-pointer h-full">
               <div className="w-full aspect-[3/4] overflow-hidden bg-[#FAFAFA]">
                 <img 
                   src={product.image} 
@@ -150,31 +153,15 @@ export default function Store() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
                 />
               </div>
-              <div className="flex flex-col gap-1 items-center text-center">
+              <div className="flex flex-col flex-1 items-center text-center">
                 <h3 className="font-serif text-sm md:text-xl text-textPrimary">{product.name || product.title}</h3>
-                <span className="font-sans text-[10px] md:text-sm tracking-widest text-textSecondary">₹{parseFloat(product.price).toFixed(2)}</span>
+                <span className="font-sans text-[10px] md:text-sm tracking-widest text-textSecondary mt-1 mb-2">₹{parseFloat(product.price).toFixed(2)}</span>
                 
                 {product.stock !== undefined && Number(product.stock) === 0 ? (
-                  <span className="font-sans text-[10px] tracking-widest uppercase text-red-500 mt-1">Out of Stock</span>
+                  <span className="font-sans text-[10px] tracking-widest uppercase text-red-500 mb-4">Out of Stock</span>
                 ) : product.stock !== undefined && Number(product.stock) <= 5 ? (
-                  <span className="font-sans text-[10px] tracking-widest uppercase text-orange-500 mt-1">Only {product.stock} left!</span>
+                  <span className="font-sans text-[10px] tracking-widest uppercase text-[#C5A059] mb-4">Only {product.stock} left!</span>
                 ) : null}
-                
-                <button
-                  disabled={product.stock !== undefined && Number(product.stock) === 0}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    addToCart(product, 1, 'M', null);
-                  }}
-                  className={`mt-3 w-full py-2 border font-sans text-[10px] tracking-widest uppercase transition-colors ${
-                    product.stock !== undefined && Number(product.stock) === 0 
-                      ? 'border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed' 
-                      : 'border-black text-black hover:bg-black hover:text-white'
-                  }`}
-                >
-                  {product.stock !== undefined && Number(product.stock) === 0 ? 'Sold Out' : 'Add to Cart'}
-                </button>
               </div>
             </Link>
           ))}

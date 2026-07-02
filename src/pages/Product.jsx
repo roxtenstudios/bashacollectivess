@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext';
 import { ALL_PRODUCTS } from './Store';
 import { IMAGES } from '../data/images';
 import { db } from '../services/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query } from 'firebase/firestore';
 
 export default function Product() {
   const { id } = useParams();
@@ -19,8 +19,10 @@ export default function Product() {
   const [customSize, setCustomSize] = useState({
     chest: '', waist: '', hip: '', shoulder: '', height: '', notes: ''
   });
+  const [similarProducts, setSimilarProducts] = useState([]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const fetchProduct = async () => {
       try {
         const docRef = doc(db, 'products', id);
@@ -65,6 +67,52 @@ export default function Product() {
     
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    if (!product) return;
+
+    const fetchSimilar = async () => {
+      let all = [];
+      try {
+        const q = query(collection(db, 'products'));
+        const snapshot = await getDocs(q);
+        all = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (err) {
+        const allAvailable = [
+          ...ALL_PRODUCTS,
+          ...IMAGES.storeProducts,
+          ...IMAGES.featured
+        ];
+        all = allAvailable;
+      }
+      
+      const currentKeywords = (product.title || product.name || '').toLowerCase().split(' ').filter(kw => kw.length > 2);
+      
+      const similar = all.filter(p => {
+        if (String(p.id) === String(product.id)) return false;
+        
+        const pTitle = (p.title || p.name || '').toLowerCase();
+        const pCat = p.category || '';
+        
+        const matchesCategory = pCat === product.category && pCat !== 'Uncategorized' && pCat !== '';
+        const matchesKeyword = currentKeywords.some(kw => pTitle.includes(kw));
+        
+        return matchesCategory || matchesKeyword;
+      });
+      
+      let finalSimilar = similar;
+      if (finalSimilar.length < 4) {
+        const others = all.filter(p => String(p.id) !== String(product.id) && !finalSimilar.some(s => s.id === p.id));
+        finalSimilar = [...finalSimilar, ...others].slice(0, 4);
+      } else {
+        finalSimilar = finalSimilar.slice(0, 4);
+      }
+      
+      setSimilarProducts(finalSimilar);
+    };
+    
+    fetchSimilar();
+  }, [product]);
 
   if (!product) {
     return (
@@ -210,6 +258,32 @@ export default function Product() {
 
         </div>
       </div>
+
+      {/* Similar Products */}
+      {similarProducts.length > 0 && (
+        <div className="mt-32 pt-16 border-t border-border/30">
+          <h2 className="font-serif text-3xl md:text-4xl text-textPrimary mb-12 text-center tracking-wide">Similar Products</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {similarProducts.map(p => {
+              const pImage = p.image || p.images?.[0] || p.src || '';
+              const pPrice = parseFloat(String(p.price).replace(/[^0-9.]/g, '') || 0).toFixed(2);
+              return (
+                <Link to={`/product/${p.id}`} key={p.id} className="group flex flex-col gap-4 cursor-pointer">
+                  <div className="w-full aspect-[3/4] overflow-hidden bg-[#FAFAFA]">
+                    <img src={pImage} alt={p.title || p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out" />
+                  </div>
+                  <div className="flex flex-col items-center text-center">
+                    <h3 className="font-serif text-sm md:text-lg text-textPrimary">{p.title || p.name}</h3>
+                    <span className="font-sans text-[10px] md:text-xs tracking-widest text-textSecondary mt-1">
+                      ₹{pPrice}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

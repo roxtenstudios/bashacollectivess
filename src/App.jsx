@@ -96,7 +96,9 @@ const StoreProtectedRoute = ({ children }) => {
 };
 
 function App() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    return !sessionStorage.getItem('basha_intro_played');
+  });
 
   // Disable scroll during preloader
   useEffect(() => {
@@ -104,7 +106,7 @@ function App() {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
-      window.scrollTo(0, 0);
+      sessionStorage.setItem('basha_intro_played', 'true');
     }
   }, [loading]);
 

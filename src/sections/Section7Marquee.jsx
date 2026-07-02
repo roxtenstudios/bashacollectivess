@@ -16,7 +16,7 @@ export default function Section7Marquee() {
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % words.length);
-    }, 2800);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 

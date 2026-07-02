@@ -74,6 +74,7 @@ export default function Header() {
         <div className="flex items-center gap-3 md:gap-6 z-50">
           <Link 
             to="/store" 
+            onClick={() => setMenuOpen(false)}
             className={`${finalTextColor} flex hover:opacity-70 transition-colors duration-300 relative items-center justify-center`} 
             aria-label="Store"
           >
@@ -81,7 +82,14 @@ export default function Header() {
           </Link>
 
           <button
-            onClick={() => currentUser ? navigate(userData?.role === 'admin' ? '/admin' : '/profile') : setIsLoginModalOpen(true)}
+            onClick={() => {
+              if (currentUser) {
+                navigate(userData?.role === 'admin' ? '/admin' : '/profile');
+              } else {
+                setIsLoginModalOpen(true);
+              }
+              setMenuOpen(false);
+            }}
             className={`${finalTextColor} hover:opacity-70 transition-colors duration-300 relative flex items-center justify-center`}
             aria-label="Profile"
           >

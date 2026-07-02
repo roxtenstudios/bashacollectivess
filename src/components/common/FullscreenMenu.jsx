@@ -3,10 +3,10 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const LINKS = [
   { name: 'Home', path: '/' },
+  { name: 'Store', path: '/store' },
   { name: 'About Us', path: '/#about' },
   { name: 'Exclusive', path: '/#exclusive' },
   { name: 'Lookbook', path: '/#lookbook' },
-  { name: 'Store', path: '/store' },
   { name: 'Contact Us', path: '/#newsletter' },
   { name: 'Checkout', path: '/checkout' }
 ];
